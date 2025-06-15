@@ -1,95 +1,34 @@
-
 import streamlit as st
-import pandas as pd
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.preprocessing import OrdinalEncoder
+from predict import predict_medical_cost
+from chatbot import respond_to_question
 
 st.set_page_config(page_title="슬기로운 의료생활", page_icon="🏥")
 
-# 사이드바: 앱 설명 + 챗봇
-with st.sidebar:
-    st.markdown("<h2 style='color:#0077b6;'>🏥 사용 안내</h2>", unsafe_allow_html=True)
-    st.markdown("""
-    이 앱은 AI를 활용하여 예상 진료비를 예측하고,  
-    보험 적용 여부에 따라 환급 금액과 본인 부담금을 계산합니다.
+col1, col2, col3 = st.columns([1, 2, 1])  # 좌우 여백 확보
 
-    **사용 방법**
-    - 정보를 입력하고 예측 버튼을 클릭하세요.
-    - 챗봇 창에 질문하면 안내 메시지를 보여줍니다.
-    """)
+with col2:
+    st.title("슬기로운 의료생활")
+    st.subheader("정보를 입력해주세요")
 
-    st.markdown("<h3 style='color:#0077b6;'>💬 챗봇 질문 </h3>", unsafe_allow_html=True)
-    st.markdown("""
-    궁금한 점을 입력해보세요 :  
-    _(예: 실손보험으로 얼마 환급돼요? / 이 병원비는 공제 대상인가요?)_
-    """, unsafe_allow_html=True)
+    gender = st.selectbox("성별", ["F", "M"], help="성별을 선택하세요")
+    age = st.slider("나이", 0, 100, 30, help="예: 62")
+    hospital = st.text_input("병원명", value="서울삼성병원", help="예: 서울삼성병원")
+    diagnosis = st.text_input("진단코드", value="K35.2", help="예: K35.2")
+    treatment = st.text_input("치료명", value="관절경 수술", help="예: 관절경 수술")
 
-    question = st.text_input("")
+    if st.button("예측하기"):
+        cost, covered, deductible = predict_medical_cost(gender, age, hospital, diagnosis, treatment)
+        st.success(f"예상 진료비: {cost:,}원")
+        st.info(f"보험 적용 여부: {covered}, 본인부담금: {deductible:,}원")
 
-    if question:
-        if "환급" in question or "얼마" in question:
-            st.info("실손보험 적용 시 보통 70%까지 환급 가능합니다.")
-        elif "공제" in question or "연말정산" in question:
-            st.info("일부 항목은 연말정산 의료비 공제 대상이 될 수 있어요.")
-        elif "복지" in question or "지원" in question:
-            st.info("장애인, 기초생활수급자 등은 의료비 지원 혜택이 있어요.")
-        elif "보험" in question:
-            st.info("보험 적용 여부는 진료 항목과 약관에 따라 다르며, 이 앱이 자동 분석해줘요.")
-        elif "계산" in question:
-            st.info("진료항목, 병원, 보험 적용 여부에 따라 달라집니다.")
-        else:
-            st.info("죄송해요! 아직 이 질문은 준비 중이에요.")
+    st.markdown("---")
+    st.subheader("궁금한 점을 입력해보세요")
+    st.markdown("""_예시: 보험 환급 되나요? / 이 진료는 청구 가능해요?_""")
 
-# 타이틀
-st.markdown("<h1 style='color:#0077b6;'>🏥 슬기로운 의료생활</h1>", unsafe_allow_html=True)
+    user_question = st.text_input("질문을 입력하세요")
+    if user_question:
+        response = respond_to_question(user_question)
+        st.markdown(f"💬 **{response}**")
 
-# 데이터 불러오기
-@st.cache_data
-def load_data():
-    url = "https://raw.githubusercontent.com/seeeeeeeeeeun/health/main/%E1%84%8B%E1%85%B4%E1%84%85%E1%85%AD%E1%84%87%E1%85%B5%E1%84%83%E1%85%A6%E1%84%8B%E1%85%B5%E1%84%90%E1%85%A5%E1%84%89%E1%85%A6%E1%86%BA.csv"
-    df = pd.read_csv(url)
-    return df
-
-df = load_data()
-
-features = ["gender", "age", "hospital_name", "diagnosis_code",
-            "treatment_name", "insurance_covered", "welfare_support"]
-target = "treatment_cost"
-
-X = df[features]
-y = df[target]
-
-# 모델 학습
-encoder = OrdinalEncoder()
-X_encoded = encoder.fit_transform(X)
-
-model = RandomForestRegressor(n_estimators=100, random_state=42)
-model.fit(X_encoded, y)
-
-# 사용자 입력
-st.markdown("### 📥 정보를 입력해주세요")
-cols = st.columns(2)
-user_input = {}
-for i, col in enumerate(features):
-    with cols[i % 2]:
-        if df[col].dtype == "object":
-            user_input[col] = st.selectbox(col, df[col].unique(), key=col)
-        elif df[col].dtype in ["int64", "float64"]:
-            user_input[col] = st.slider(col, int(df[col].min()), int(df[col].max()), int(df[col].mean()), key=col)
-
-# 예측 결과 출력
-st.markdown("---")
-if st.button("🔵 예상 진료비 예측하기", type="primary"):
-    input_df = pd.DataFrame([user_input])
-    input_encoded = encoder.transform(input_df)
-    prediction = model.predict(input_encoded)[0]
-
-    st.success(f"💰 예상 진료비는 약 {int(prediction):,}원입니다.")
-
-    if user_input["insurance_covered"] == "Y":
-        환급액 = int(prediction * 0.7)
-        본인부담 = int(prediction - 환급액)
-        st.markdown(f"<span style='color:#0077b6;'>💸 환급 예상 금액: <b>{환급액:,}원</b></span>", unsafe_allow_html=True)
-        st.markdown(f"<span style='color:#0096c7;'>🧾 본인 부담 금액: <b>{본인부담:,}원</b></span>", unsafe_allow_html=True)
-    else:
-        st.markdown("<span style='color:#e63946;'>❌ 보험 미적용. 전액 본인 부담입니다.</span>", unsafe_allow_html=True)
+    st.markdown("---")
+    st.caption("© 2025 슬기로운 의료생활")
