@@ -4,7 +4,7 @@ import pandas as pd
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.preprocessing import OrdinalEncoder
 
-st.title("🩺 의료비 예측 도우미 (GitHub CSV 연결형)")
+st.title("💡 AI 기반 의료비 예측 도우미")
 
 @st.cache_data
 def load_data():
@@ -47,3 +47,18 @@ if st.button("예상 진료비 예측하기"):
         st.markdown(f"🧾 본인 부담 금액: **{본인부담:,}원**")
     else:
         st.markdown("❌ 보험 미적용. 전액 본인 부담입니다.")
+
+st.markdown("---")
+st.subheader("💬 챗봇 질문 시뮬레이션")
+
+question = st.text_input("궁금한 점을 입력해보세요 (예: 보험 환급 되나요?)")
+
+if question:
+    if "환급" in question:
+        st.info("실손보험이 적용되면 최대 70%까지 환급 가능합니다.")
+    elif "병원비" in question or "진료비" in question:
+        st.info("입력된 정보를 바탕으로 병원비를 예측합니다. 보험과 복지 지원에 따라 달라집니다.")
+    elif "공제" in question or "연말정산" in question:
+        st.info("연말정산 공제 예측 기능은 추후 업데이트될 예정입니다.")
+    else:
+        st.info("죄송해요! 아직 이 질문은 준비 중이에요.")
