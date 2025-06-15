@@ -41,7 +41,7 @@ with st.sidebar:
             st.info("죄송해요! 아직 이 질문은 준비 중이에요.")
 
 # 타이틀
-st.markdown("<h1 style='color:#0077b6;'>🏥 AI 기반 의료비 예측 도우미</h1>", unsafe_allow_html=True)
+st.markdown("<h1 style='color:#0077b6;'>🏥 슬기로운 의료생활</h1>", unsafe_allow_html=True)
 
 # 데이터 불러오기
 @st.cache_data
@@ -67,7 +67,7 @@ model = RandomForestRegressor(n_estimators=100, random_state=42)
 model.fit(X_encoded, y)
 
 # 사용자 입력
-st.markdown("### 📥 사용자 정보 입력")
+st.markdown("### 📥 정보를 입력해주세요")
 cols = st.columns(2)
 user_input = {}
 for i, col in enumerate(features):
