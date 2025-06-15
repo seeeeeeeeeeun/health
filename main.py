@@ -19,8 +19,9 @@ if st.button("예측하기"):
     st.info(f"보험 적용 여부: {covered}, 본인부담금: {deductible:,}원")
 
 st.markdown("---")
-st.subheader("궁금한 점을 입력해보세요
-(예시질문: 보험 환급 되나요?)")
+st.subheader("궁금한 점을 입력해보세요")
+st.markdown("""_예시: 보험 환급 되나요? / 이 진료는 청구 가능해요?_""")
+
 user_question = st.text_input("질문을 입력하세요")
 if user_question:
     response = respond_to_question(user_question)
