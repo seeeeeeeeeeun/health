@@ -19,8 +19,7 @@ with st.sidebar:
     """)
 
     st.markdown("<h3 style='color:#0077b6;'>💬 챗봇 질문 시뮬레이션</h3>", unsafe_allow_html=True)
-    st.markdown("궁금한 점을 입력해보세요
-
+    st.markdown("궁금한 점을 입력해보세요  
 _예: 실손보험으로 얼마 환급돼요? / 이 병원비는 공제 대상인가요?_", unsafe_allow_html=True)
     question = st.text_input("")
 
