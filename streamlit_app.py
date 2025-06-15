@@ -8,27 +8,32 @@ st.set_page_config(page_title="AI 기반 의료비 예측 도우미", layout="wi
 
 # 사이드바: 앱 설명 + 챗봇
 with st.sidebar:
-    st.title("🏥 사용 안내")
+    st.markdown("<h2 style='color:#0077b6;'>🏥 사용 안내</h2>", unsafe_allow_html=True)
     st.markdown("""
     이 앱은 AI를 활용하여 예상 진료비를 예측하고,  
     보험 적용 여부에 따라 환급 금액과 본인 부담금을 계산합니다.
 
-    사용 방법:
-    1. 아래에서 정보를 입력하세요.
-    2. '예상 진료비 예측하기' 버튼을 누르세요.
-    3. 결과를 확인하고 챗봇에 질문해보세요.
+    **사용 방법**
+    - 정보를 입력하고 예측 버튼을 클릭하세요.
+    - 챗봇 창에 질문하면 안내 메시지를 보여줍니다.
     """)
 
-    st.subheader("💬 챗봇 질문 시뮬레이션")
-    question = st.text_input("궁금한 점을 입력해보세요")
+    st.markdown("<h3 style='color:#0077b6;'>💬 챗봇 질문 시뮬레이션</h3>", unsafe_allow_html=True)
+    question = st.text_input(
+        "궁금한 점을 입력해보세요 (예: 실손보험으로 얼마 환급돼요?, 이 병원비는 공제 대상인가요?)"
+    )
 
     if question:
-        if "환급" in question:
-            st.info("실손보험이 적용되면 최대 70%까지 환급 가능합니다.")
-        elif "병원비" in question or "진료비" in question:
-            st.info("입력된 정보를 바탕으로 병원비를 예측합니다. 보험과 복지 지원에 따라 달라집니다.")
+        if "환급" in question or "얼마" in question:
+            st.info("실손보험 적용 시 보통 70%까지 환급 가능합니다.")
         elif "공제" in question or "연말정산" in question:
-            st.info("연말정산 공제 예측 기능은 추후 업데이트될 예정입니다.")
+            st.info("일부 항목은 연말정산 의료비 공제 대상이 될 수 있어요.")
+        elif "복지" in question or "지원" in question:
+            st.info("장애인, 기초생활수급자 등은 의료비 지원 혜택이 있어요.")
+        elif "보험" in question:
+            st.info("보험 적용 여부는 진료 항목과 약관에 따라 다르며, 이 앱이 자동 분석해줘요.")
+        elif "계산" in question:
+            st.info("진료항목, 병원, 보험 적용 여부에 따라 달라집니다.")
         else:
             st.info("죄송해요! 아직 이 질문은 준비 중이에요.")
 
@@ -59,7 +64,7 @@ model = RandomForestRegressor(n_estimators=100, random_state=42)
 model.fit(X_encoded, y)
 
 # 사용자 입력
-st.header("📥 사용자 정보 입력")
+st.markdown("### 📥 사용자 정보 입력")
 cols = st.columns(2)
 user_input = {}
 for i, col in enumerate(features):
@@ -69,9 +74,9 @@ for i, col in enumerate(features):
         elif df[col].dtype in ["int64", "float64"]:
             user_input[col] = st.slider(col, int(df[col].min()), int(df[col].max()), int(df[col].mean()), key=col)
 
-# 예측 결과 출력 (그래프 제거됨)
+# 예측 결과 출력
 st.markdown("---")
-if st.button("📘 예상 진료비 예측하기", type="primary"):
+if st.button("🔵 예상 진료비 예측하기", type="primary"):
     input_df = pd.DataFrame([user_input])
     input_encoded = encoder.transform(input_df)
     prediction = model.predict(input_encoded)[0]
